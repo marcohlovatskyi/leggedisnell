@@ -1,0 +1,167 @@
+<!DOCTYPE html>
+<html lang="it">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Calcolatore della Legge di Snell</title>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            margin: 0;
+            padding: 0;
+            background: #f0f8ff;
+            color: #333;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+        }
+        header {
+            background: #0077b6;
+            color: white;
+            width: 100%;
+            text-align: center;
+            padding: 1em 0;
+            box-shadow: 0 2px 5px rgba(0, 0, 0, 0.2);
+        }
+        .container {
+            margin: 2em;
+            padding: 1.5em;
+            background: white;
+            box-shadow: 0 4px 10px rgba(0, 0, 0, 0.1);
+            border-radius: 8px;
+            max-width: 600px;
+            width: 100%;
+        }
+        input, button {
+            padding: 10px;
+            margin: 10px 0;
+            width: 100%;
+            border: 1px solid #ccc;
+            border-radius: 4px;
+            font-size: 16px;
+        }
+        button {
+            background: #0077b6;
+            color: white;
+            cursor: pointer;
+        }
+        button:hover {
+            background: #005f87;
+        }
+        canvas {
+            margin-top: 2em;
+        }
+    </style>
+</head>
+<body>
+    <header>
+        <h1>Calcolatore della Legge di Snell</h1>
+        <p>Visualizza sia rifrazione che riflessione all'interfaccia</p>
+    </header>
+
+    <div class="container">
+        <label for="n1">Indice di rifrazione (n1):</label>
+        <input type="number" id="n1" placeholder="es. 1.0 (aria)">
+
+        <label for="n2">Indice di rifrazione (n2):</label>
+        <input type="number" id="n2" placeholder="es. 1.5 (vetro)">
+
+        <label for="angle">Angolo di incidenza (gradi):</label>
+        <input type="number" id="angle" placeholder="es. 30">
+
+        <button onclick="calculateAndDraw()">Calcola e Disegna</button>
+    </div>
+
+    <canvas id="snellCanvas" width="600" height="400"></canvas>
+
+    <script>
+        function calculateAndDraw() {
+            const n1 = parseFloat(document.getElementById('n1').value);
+            const n2 = parseFloat(document.getElementById('n2').value);
+            const angleIncidence = parseFloat(document.getElementById('angle').value);
+            const canvas = document.getElementById('snellCanvas');
+            const ctx = canvas.getContext('2d');
+
+            // Pulisci il disegno precedente
+            ctx.clearRect(0, 0, canvas.width, canvas.height);
+
+            // Converte l'angolo di incidenza in radianti
+            const angleIncidenceRad = (angleIncidence * Math.PI) / 180;
+
+            // Calcola l'angolo di rifrazione usando la Legge di Snell
+            let angleRefractionRad = Math.asin((n1 / n2) * Math.sin(angleIncidenceRad));
+            let totalInternalReflection = false;
+
+            if (isNaN(angleRefractionRad)) {
+                totalInternalReflection = true;
+            }
+
+            const canvasCenterX = canvas.width / 2;
+            const canvasCenterY = canvas.height / 2;
+            const lineLength = 150;
+
+            // Disegna la linea della superficie
+            ctx.beginPath();
+            ctx.moveTo(0, canvasCenterY);
+            ctx.lineTo(canvas.width, canvasCenterY);
+            ctx.strokeStyle = 'black';
+            ctx.lineWidth = 1;
+            ctx.stroke();
+
+            // Disegna la linea normale
+            ctx.beginPath();
+            ctx.setLineDash([5, 5]);
+            ctx.moveTo(canvasCenterX, 0);
+            ctx.lineTo(canvasCenterX, canvas.height);
+            ctx.strokeStyle = 'gray';
+            ctx.stroke();
+
+            // Disegna il raggio incidente
+            ctx.beginPath();
+            ctx.setLineDash([]);
+            ctx.moveTo(canvasCenterX, canvasCenterY);
+            ctx.lineTo(
+                canvasCenterX - lineLength * Math.sin(angleIncidenceRad),
+                canvasCenterY - lineLength * Math.cos(angleIncidenceRad)
+            );
+            ctx.strokeStyle = 'blue';
+            ctx.lineWidth = 2;
+            ctx.stroke();
+            ctx.fillText('Raggio Incidente', canvasCenterX - 100, canvasCenterY - 50);
+
+            // Disegna il raggio riflesso
+            ctx.beginPath();
+            ctx.moveTo(canvasCenterX, canvasCenterY);
+            ctx.lineTo(
+                canvasCenterX + lineLength * Math.sin(angleIncidenceRad),
+                canvasCenterY - lineLength * Math.cos(angleIncidenceRad)
+            );
+            ctx.strokeStyle = 'green';
+            ctx.stroke();
+            ctx.fillText('Raggio Riflesso', canvasCenterX + 50, canvasCenterY - 50);
+
+            if (!totalInternalReflection) {
+                // Disegna il raggio rifratto
+                ctx.beginPath();
+                ctx.moveTo(canvasCenterX, canvasCenterY);
+                ctx.lineTo(
+                    canvasCenterX + lineLength * Math.sin(angleRefractionRad),
+                    canvasCenterY + lineLength * Math.cos(angleRefractionRad)
+                );
+                ctx.strokeStyle = 'red';
+                ctx.stroke();
+                ctx.fillText('Raggio Rifratto', canvasCenterX + 50, canvasCenterY + 50);
+            } else {
+                // Indica riflessione totale interna
+                ctx.fillStyle = 'red';
+                ctx.fillText(
+                    'Si verifica riflessione totale interna',
+                    canvasCenterX - 100,
+                    canvasCenterY + 50
+                );
+            }
+        }
+    </script>
+</body>
+</html>
